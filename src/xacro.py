@@ -442,9 +442,6 @@ def eval_text(text, symbols):
         lex.lex(s)
         return eval_expr(lex, symbols)
 
-    def handle_extension(s):
-        return eval_extension("$(%s)" % s)
-
     results = []
     lex = QuickLexer(DOLLAR_DOLLAR_BRACE=r"\$\$+\{",
                      EXPR=r"\$\{[^\}]*\}",
@@ -455,7 +452,7 @@ def eval_text(text, symbols):
         if lex.peek()[0] == lex.EXPR:
             results.append(handle_expr(lex.next()[1][2:-1]))
         elif lex.peek()[0] == lex.EXTENSION:
-            results.append(handle_extension(lex.next()[1][2:-1]))
+            results.append(eval_extension(lex.next()[1]))
         elif lex.peek()[0] == lex.TEXT:
             results.append(lex.next()[1])
         elif lex.peek()[0] == lex.DOLLAR_DOLLAR_BRACE:
