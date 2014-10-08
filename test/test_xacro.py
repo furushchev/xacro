@@ -226,46 +226,85 @@ class TestXacro(unittest.TestCase):
 </a>'''))
 
 
-    def test_numeric_if_statement(self):
-        doc = parseString('''\
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:if value="${3*0}"/>
-  <xacro:if value="0"/>
-  <xacro:if value="1"/>
-  <xacro:unless  value="${3*0}"/>
-  <xacro:unless value="0"/>
-  <xacro:unless value="1"/>
-</robot>''')
-        quick_xacro(doc)
+    def test_boolean_if_statement(self):
         self.assertTrue(
             xml_matches(
                 quick_xacro('''\
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:if value="${3*0}">
+  <xacro:if value="false">
+    <a />
+  </xacro:if>
+  <xacro:if value="true">
+    <b />
+  </xacro:if>
+</robot>'''),
+                '''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <b />
+</robot>'''))      
+
+    def test_integer_if_statement(self):
+        self.assertTrue(
+            xml_matches(
+                quick_xacro('''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:if value="${0*42}">
     <a />
   </xacro:if>
   <xacro:if value="0">
     <b />
   </xacro:if>
-  <xacro:if value="1">
+  <xacro:if value="${0}">
     <c />
   </xacro:if>
- <xacro:unless value="${3*0}">
+  <xacro:if value="${1*2+3}">
     <d />
-  </xacro:unless>
-  <xacro:unless value="0">
-    <e />
-  </xacro:unless>
-  <xacro:unless value="1">
-    <f />
-  </xacro:unless>
+  </xacro:if>
 </robot>'''),
                 '''\
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <c />
     <d />
-    <e />
+</robot>'''))      
+
+    def test_float_if_statement(self):
+        self.assertTrue(
+            xml_matches(
+                quick_xacro('''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:if value="${3*0.0}">
+    <a />
+  </xacro:if>
+  <xacro:if value="${3*0.1}">
+    <b />
+  </xacro:if>
+</robot>'''),
+                '''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <b />
 </robot>'''))
+
+    def test_recursive_evaluation(self):
+        self.assertTrue(
+            xml_matches(
+                quick_xacro('''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="a" value="42"/>
+  <xacro:property name="a2" value="${2*a}"/>
+  <a doubled="${a2}"/>
+</robot>'''),
+                '''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <a doubled="84"/>
+</robot>'''))
+
+    def test_recursive_definition(self):
+        self.assertRaises(xacro.XacroException,
+                          quick_xacro, '''\
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="a" value="${a2}"/>
+  <xacro:property name="a2" value="${2*a}"/>
+  <a doubled="${a2}"/>
+</robot>''')
 
 if __name__ == '__main__':
     import rostest
