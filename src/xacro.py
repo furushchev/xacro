@@ -542,7 +542,7 @@ def eval_all(root, macros, symbols):
                 try: 
                     if value == 'true': keep = True
                     elif value == 'false': keep = False
-                    else: keep = float(value)
+                    else: keep = int(float(value))
                 except ValueError:
                     raise XacroException("Xacro conditional evaluated to \"%s\". Acceptable evaluations are one of [\"1\",\"true\",\"0\",\"false\"]" % value)
                 if node.tagName in ['unless', 'xacro:unless']: keep = not keep
